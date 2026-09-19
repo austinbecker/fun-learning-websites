@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Arcade</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #090d1a;
+      color: white;
+      text-align: center;
+    }
+
+    header {
+      padding: 30px 15px;
+      background: linear-gradient(135deg, #631cff, #00c8ff);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 42px;
+    }
+
+    header p {
+      margin-bottom: 0;
+      font-size: 18px;
+    }
+
+    nav {
+      padding: 15px;
+      background: #11182d;
+    }
+
+    nav button,
+    .game button {
+      margin: 6px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #743cff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    nav button:hover,
+    .game button:hover {
+      background: #00aaff;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 25px auto;
+      padding: 15px;
+    }
+
+    .game {
+      display: none;
+      background: #151d35;
+      border-radius: 15px;
+      padding: 25px;
+      min-height: 300px;
+      box-shadow: 0 0 20px #0008;
+    }
+
+    .game.active {
+      display: block;
+    }
+
+    .score {
+      color: #00eaff;
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    #clickButton {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      font-size: 25px;
+      background: #ff287d;
+    }
+
+    #clickButton:active {
+      transform: scale(0.95);
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 90px);
+      justify-content: center;
+      gap: 8px;
+      margin: 20px auto;
+    }
+
+    .cell {
+      width: 90px;
+      height: 90px;
+      background: #26345d;
+      border-radius: 8px;
+      font-size: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    canvas {
+      background: #05070d;
+      border: 3px solid #00eaff;
+      max-width: 100%;
+    }
+
+    footer {
+      padding: 25px;
+      color: #9da8c7;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>🎮 Pixel Arcade</h1>
+    <p>Play free browser games!</p>
+  </header>
+
+  <nav>
+    <button onclick="showGame('clicker')">Clicker</button>
+    <button onclick="showGame('tictactoe')">Tic-Tac-Toe</button>
+    <button onclick="showGame('snake')">Snake</button>
+  </nav>
+
+  <main>
+
+    <section id="clicker" class="game active">
+      <h2>⚡ Super Clicker</h2>
+      <p>Click the button as many times as possible.</p>
+      <p class="score">Score: <span id="clickScore">0</span></p>
+      <button id="clickButton" onclick="addClick()">CLICK!</button>
+      <br>
+      <button onclick="resetClicker()">Reset</button>
+    </section>
+
+    <section id="tictactoe" class="game">
+      <h2>⭕ Tic-Tac-Toe</h2>
+      <p id="turnText">Player X's turn</p>
+
+      <div id="board">
+        <div class="cell" onclick="playCell(0)"></div>
+        <div class="cell" onclick="playCell(1)"></div>
+        <div class="cell" onclick="playCell(2)"></div>
+        <div class="cell" onclick="playCell(3)"></div>
+        <div class="cell" onclick="playCell(4)"></div>
+        <div class="cell" onclick="playCell(5)"></div>
+        <div class="cell" onclick="playCell(6)"></div>
+        <div class="cell" onclick="playCell(7)"></div>
+        <div class="cell" onclick="playCell(8)"></div>
+      </div>
+
+      <button onclick="resetTicTacToe()">New Game</button>
+    </section>
+
+    <section id="snake" class="game">
+      <h2>🐍 Snake</h2>
+      <p>Use your keyboard arrow keys to move.</p>
+      <p class="score">Score: <span id="snakeScore">0</span></p>
+
+      <canvas id="snakeCanvas" width="400" height="400"></canvas>
+      <br>
+      <button onclick="startSnake()">Start Snake</button>
+    </section>
+
+  </main>
+
+  <footer>
+    Pixel Arcade © 2026
+  </footer>
+
+  <script>
+    // Switch between games
+    function showGame(gameName) {
+      document.querySelectorAll(".game").forEach(game => {
+        game.classList.remove("active");
+      });
+
+      document.getElementById(gameName).classList.add("active");
+    }
+
+    // CLICKER GAME
+    let clickScore = 0;
+
+    function addClick() {
+      clickScore++;
+      document.getElementById("clickScore").textContent = clickScore;
+    }
+
+    function resetClicker() {
+      clickScore = 0;
+      document.getElementById("clickScore").textContent = clickScore;
+    }
+
+    // TIC-TAC-TOE GAME
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let currentPlayer = "X";
+    let gameOver = false;
+
+    function playCell(index) {
+      if (board[index] !== "" || gameOver) {
+        return;
+      }
+
+      board[index] = currentPlayer;
+      document.querySelectorAll(".cell")[index].textContent = currentPlayer;
+
+      if (checkWinner()) {
+        document.getElementById("turnText").textContent =
+          "Player " + currentPlayer + " wins!";
+        gameOver = true;
+        return;
+      }
+
+      if (!board.includes("")) {
+        document.getElementById("turnText").textContent = "It's a draw!";
+        gameOver = true;
+        return;
+      }
+
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      document.getElementById("turnText").textContent =
+        "Player " + currentPlayer + "'s turn";
+    }
+
+    function checkWinner() {
+      const winningLines = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+      ];
+
+      return winningLines.some(line => {
+        return board[line[0]] &&
+          board[line[0]] === board[line[1]] &&
+          board[line[1]] === board[line[2]];
+      });
+    }
+
+    function resetTicTacToe() {
+      board = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = "X";
+      gameOver = false;
+
+      document.querySelectorAll(".cell").forEach(cell => {
+        cell.textContent = "";
+      });
+
+      document.getElementById("turnText").textContent = "Player X's turn";
+    }
+
+    // SNAKE GAME
+    const canvas = document.getElementById("snakeCanvas");
+    const context = canvas.getContext("2d");
+
+    let snake;
+    let food;
+    let direction;
+    let snakeScore;
+    let snakeTimer;
+
+    function startSnake() {
+      clearInterval(snakeTimer);
+
+      snake = [
+        { x: 200, y: 200 },
+        { x: 180, y: 200 },
+        { x: 160, y: 200 }
+      ];
+
+      food = {
+        x: Math.floor(Math.random() * 20) * 20,
+        y: Math.floor(Math.random() * 20) * 20
+      };
+
+      direction = "RIGHT";
+      snakeScore = 0;
+      document.getElementById("snakeScore").textContent = snakeScore;
+
+      snakeTimer = setInterval(updateSnake, 120);
+    }
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key === "ArrowUp" && direction !== "DOWN") {
+        direction = "UP";
+      }
+
+      if (event.key === "ArrowDown" && direction !== "UP") {
+        direction = "DOWN";
+      }
+
+      if (event.key === "ArrowLeft" && direction !== "RIGHT") {
+        direction = "LEFT";
+      }
+
+      if (event.key === "ArrowRight" && direction !== "LEFT") {
+        direction = "RIGHT";
+      }
+    });
+
+    function updateSnake() {
+      const head = {
+        x: snake[0].x,
+        y: snake[0].y
+      };
+
+      if (direction === "UP") head.y -= 20;
+      if (direction === "DOWN") head.y += 20;
+      if (direction === "LEFT") head.x -= 20;
+      if (direction === "RIGHT") head.x += 20;
+
+      if (
+        head.x < 0 ||
+        head.x >= canvas.width ||
+        head.y < 0 ||
+        head.y >= canvas.height ||
+        snake.some(part => part.x === head.x && part.y === head.y)
+      ) {
+        clearInterval(snakeTimer);
+        alert("Game over! Your score was " + snakeScore);
+        return;
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        snakeScore++;
+        document.getElementById("snakeScore").textContent = snakeScore;
+
+        food = {
+          x: Math.floor(Math.random() * 20) * 20,
+          y: Math.floor(Math.random() * 20) * 20
+        };
+      } else {
+        snake.pop();
+      }
+
+      drawSnake();
+    }
+
+    function drawSnake() {
+      context.fillStyle = "#05070d";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.fillStyle = "#00eaff";
+      snake.forEach(part => {
+        context.fillRect(part.x, part.y, 18, 18);
+      });
+
+      context.fillStyle = "#ff287d";
+      context.fillRect(food.x, food.y, 18, 18);
+    }
+  </script>
+
+</body>
+</html>
